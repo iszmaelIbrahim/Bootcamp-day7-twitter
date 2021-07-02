@@ -1,0 +1,252 @@
+{%extends 'feed/base.html'%}
+
+
+{%block content%}
+<br>
+<br>
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card" style="background-color: rgb(58, 78, 116);">
+                <div class="card-header" align=center>
+                    <a href="#">
+                        <h4 class="text-white"> Profile </h4>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row" align=center>
+                        <a class="nav-link" href="{% url 'profile' %}">
+                            <img class="rounded-circle account-img img-fluid" src="{{ user.profile.image.url}}"
+                                width="100" height="100">
+                        </a>
+                    </div>
+                    <div class="row text-white">
+
+                        {% if user_profile is None %}
+                        <h4 style="text-align: left" class="white-important">
+                            @{{ user.username }}
+                        </h4>
+                        <h6 style="text-align: left" class="email-profile">
+                            {{ user.profile.bio }}
+                        </h6>
+                        {% endif %}
+                        {% if user_profile is not None and user_profile.id != user.id and user.username != '' %}
+
+                        <h4 style="text-align: left" class="white-important">
+                            @{{ user_profile.username }}
+                        </h4>
+                        <h6 style="text-align: left" class="email-profile">
+                            {{ user_profile.profile.bio }}
+                        </h6>
+
+                        {% endif %}
+                    </div>
+
+                    <div class="row d-flex flex-nowrap text-white pt-3">
+                        <div class="col-6" align=center>
+                            Followers
+                        </div>
+                        <div class="col-6" align=center>
+                            Following
+                        </div>
+                    </div>
+                    <div class="row d-flex flex-nowrap text-white pt-3">
+                        {% if user_profile != None %}
+                        <div class="col-6" align=center>
+                            <h3 class="white-important follow-click">
+                                <a href="{% url 'user-followers' user_profile.username %}">
+                                    {{ user_profile.profile.followers }}
+                                </a>
+                            </h3>
+                        </div>
+                        <div class="col-6" align=center>
+                            <a href="{% url 'user-follows' user_profile.username %}">
+                                <h3 class="white-important follow-click">
+                                    {{ user_profile.profile.following }}
+                                </h3>
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="col-6" align=center>
+                            <a href="{% url 'user-followers' user.username %}">
+                                <h3 class="text-white follow-click">
+                                    {{ user.profile.followers }}
+                                </h3>
+                            </a>
+                        </div>
+
+                        <a href="{% url 'user-follows' user.username %}">
+                            <div class="col-6" align=center>
+                                <h3 class="text-white follow-click">
+                                    {{ user.profile.following }}
+                                </h3>
+                            </div>
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex">
+                       
+                        {% if user_profile is not None and user_profile.id != user.id and user.username != '' %}
+                        <div style="margin-left: auto; margin-right:auto">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <button class="btn btn-sm btn-primary"
+                                        name="{% if can_follow %}follow{% else %}unfollow{% endif %}" type="submit">
+                                        {% if can_follow %}
+                                        FOLLOW
+                                        {% else %}
+                                        UNFOLLOW
+                                        {% endif %}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- timeline -->
+        <div class="col-md-6 scrollable">
+            {% if user_profile is None %}
+            <div class="jumbotron p-3">
+                <h1 class="display-4">Hello, {{user.username}}</h1>
+                <p class="lead">This is simple twitter clone</p>
+                <hr class="my-4">
+                <p>how was your day today?</p>
+                <!-- <p class="lead">
+                    <a class="btn btn-primary btn-lg" href="{% url 'tweetcreate'%}" role="button">Create tweet</a>
+                </p> -->
+                
+                <div style="margin-left: auto; margin-right:auto">
+                    <a class="btn btn-sm btn-outline-primary mb-4 mr-3 " href="{% url 'post-create' %}">
+                        Tweet
+                    </a>
+                </div>
+                
+            </div>
+            {% endif %}
+            <br>
+            <div class="full-width row">
+                <div class="col-6 no-padding">
+                    <h6 style="position: absolute; bottom: 0; right: 0" class="white-important mb-3">
+                        {{ page_obj.start_index }} - {{ page_obj.end_index }} of
+                        {{ paginator.count }}
+                    </h6>
+                </div>
+            </div>
+
+            {% for post in posts %}
+
+
+            <div class="card">
+
+                <div class="card-header">
+                    <div style="padding-left: 0px !important;" class="col-8 no-padding d-flex align-items-center">
+                        <img class="rounded-circle mr-2" style="width: 20px; height: 20px;"
+                            src="{{ post.author.profile.image.url }}">
+                        <a class="mr-2 white-important" href="{% url 'user-posts' post.author %}">
+                            {{ post.author }}
+                    </div>
+                    <small class="text-dark">{{ post.date_posted | date:"H:i l, d.m.y" }}</small>
+                </div>
+                <div class="card-body">
+                    <a style="color: rgba(255, 255, 255, 0.5) !important;" href="{% url 'post-detail' post.id %}">
+                        <p class="mb-4 text-dark">
+                            {{ post.content }}
+                        </p>
+                        
+                    </a>
+
+                    <div>
+                        <a class="btn btn-sm btn-primary ml-2" style="font-size: 14px"
+                            href="{% url 'post-detail' post.id %}">Reply</a>
+                        {% if post.author == user %}
+                        <a class="btn btn-sm btn-info ml-2" style="font-size: 14px"
+                            href="{% url 'post-update' post.id %}">Update</a>
+                        <a class="btn btn-sm btn-danger ml-2" style="font-size: 14px"
+                            href="{% url 'post-delete' post.id %}">Delete</a>
+                        
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <br>
+
+
+            {% endfor %}
+
+            <div class="full-width d-flex justify-content-center">
+                {% if is_paginated %}
+                {% if page_obj.has_previous %}
+                <a class="btn btn-sm btn-outline-secondary mb-4 mr-2" href="?page=1">First</a>
+                <a class="btn btn-sm btn-outline-secondary mb-4 mr-2"
+                    href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <a class="btn btn-sm btn-info mb-4 mr-2" href="?page={{ num }}">{{ num }}</a>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a
+                    class="btn btn-sm btn-secondary mb-4 mr-2" href="?page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a class="btn btn-sm btn-secondary mb-4 mr-2"
+                        href="?page={{ page_obj.next_page_number }}">Next</a>
+                    <a class="btn btn-sm btn-secondary mb-4 mr-2"
+                        href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    {% endif %}
+                    {% endif %}
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            {% if user_profile is None %}
+            <div class="card" style="background-color: rgb(58, 78, 116);">
+                <div class="card-header" align=center>
+                    <a href="#" class="text-white">
+                        <h3>Who to follow</h3>
+                    </a>
+                </div>
+                <div class="card-body">
+
+                    <ul class="col-12 mt-2 text-white">
+                        {% for user in all_users %}
+                        <li>
+                            <div class="who-to-follow">
+
+                                <div style="padding-left: 0px !important;"
+                                    class="col-8 no-padding d-flex align-items-center">
+                                    <img class="rounded-circle mr-2" style="width: 20px; height: 20px;"
+                                        src="{{ user.profile.image.url }}">
+                                    <a class="mr-2 white-important text-white"
+                                        href="{% url 'user-posts' user.username %}">
+                                        {{ user.username }}
+                                    </a>
+                                </div>
+                                <p>{{ user.email }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <br>
+
+</div>
+
+{%endblock content%}
